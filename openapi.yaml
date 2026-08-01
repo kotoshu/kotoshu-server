@@ -1,0 +1,217 @@
+openapi: 3.1.0
+info:
+  title: Kotoshu HTTP API
+  version: 0.1.0
+  description: |
+    Self-hostable HTTP API wrapping the Kotoshu spell checker.
+    Used by the Python, JavaScript, and Go SDKs.
+  license:
+    name: BSD-2-Clause
+    url: https://github.com/kotoshu/kotoshu/blob/main/LICENSE
+servers:
+  - url: http://localhost:9292
+    description: Local server
+paths:
+  /:
+    get:
+      summary: Service metadata
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metadata"
+  /v1/health:
+    get:
+      summary: Liveness probe + cache state
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /v1/version:
+    get:
+      summary: Server + kotoshu versions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+  /v1/languages:
+    get:
+      summary: Languages with cached dictionaries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Languages"
+  /v1/check:
+    post:
+      summary: Check text for spelling errors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckRequest"
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/ResourceNotSetup"
+  /v1/suggest:
+    post:
+      summary: Get suggestions for a single word
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestRequest"
+      responses:
+        "200":
+          description: Suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Suggestions"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /v1/detect:
+    post:
+      summary: Detect the language of text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectRequest"
+      responses:
+        "200":
+          description: Detected language
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Detection"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+components:
+  responses:
+    BadRequest:
+      description: Malformed request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ResourceNotSetup:
+      description: Language not set up on the server
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Metadata:
+      type: object
+      required: [name, version, kotoshu_version]
+      properties:
+        name: { type: string, example: kotoshu-server }
+        version: { type: string, example: 0.1.0 }
+        kotoshu_version: { type: string, example: 0.6.0 }
+        docs: { type: string }
+    Health:
+      type: object
+      required: [status, ready]
+      properties:
+        status: { type: string, example: ok }
+        ready:
+          type: object
+          additionalProperties: { type: boolean }
+          example: { en: true }
+        timestamp: { type: string, format: date-time }
+    Version:
+      type: object
+      required: [server, kotoshu]
+      properties:
+        server: { type: string }
+        kotoshu: { type: string }
+        ruby: { type: string }
+    Languages:
+      type: object
+      required: [cached]
+      properties:
+        cached:
+          type: array
+          items: { type: string }
+    CheckRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        language: { type: string, default: en }
+        format: { type: string, enum: [full, errors], default: full }
+    SuggestRequest:
+      type: object
+      required: [word]
+      properties:
+        word: { type: string }
+        language: { type: string, default: en }
+        max: { type: integer, minimum: 1, maximum: 50 }
+    DetectRequest:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+    DocumentResult:
+      type: object
+      properties:
+        file: { type: string, nullable: true }
+        word_count: { type: integer }
+        errors:
+          type: array
+          items: { $ref: "#/components/schemas/WordError" }
+    WordError:
+      type: object
+      properties:
+        word: { type: string }
+        position: { type: integer, nullable: true }
+        suggestions:
+          type: array
+          items: { $ref: "#/components/schemas/Suggestion" }
+    Suggestions:
+      type: object
+      properties:
+        word: { type: string }
+        suggestions:
+          type: array
+          items: { $ref: "#/components/schemas/Suggestion" }
+    Suggestion:
+      type: object
+      properties:
+        word: { type: string }
+        distance: { type: integer }
+        confidence: { type: number, format: float }
+        source: { type: string }
+    Detection:
+      type: object
+      properties:
+        language: { type: string, nullable: true }
+        confidence: { type: number, format: float }
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+        message: { type: string }
+        hint: { type: string }
