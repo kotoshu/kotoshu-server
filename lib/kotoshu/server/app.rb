@@ -10,15 +10,48 @@ module Kotoshu
     class App < Sinatra::Base
       VERSION = "0.1.0".freeze
 
+      # Languages to set up at boot, from KOTOSHU_SERVER_LANGUAGES
+      # (space separated). Single source of truth for the env var: the
+      # boot pre-warm and /v1/health both read it here.
+      #
+      # @return [Array<String>] Language codes to pre-warm
+      def self.configured_languages
+        ENV.fetch("KOTOSHU_SERVER_LANGUAGES", "en").split
+      end
+
+      # Synchronously set up the given languages (downloads on a cold
+      # or expired cache). Runs on the pre-warm thread; also usable
+      # directly by embedders that want a blocking warm-up.
+      #
+      # @param languages [Array<String>] Language codes
+      # @return [void]
       def self.prewarm!(languages)
         logger = Logger.new($stderr)
         languages.each do |lang|
           logger.info("pre-warming #{lang}")
           begin
             Kotoshu.setup(lang.to_sym)
+            logger.info("pre-warm #{lang} complete")
           rescue StandardError => e
             logger.warn("pre-warm #{lang} failed: #{e.message}")
           end
+        end
+      end
+
+      # Start pre-warming in a detached background thread and return
+      # immediately. The server must bind and serve within seconds of
+      # boot, while resource setup can block on the network
+      # (download retries, and DNS resolution that no Net::HTTP
+      # timeout bounds) — so setup never runs on the boot path.
+      # Progress and completion are logged; /v1/health reports
+      # per-language readiness while it runs.
+      #
+      # @param languages [Array<String>] Language codes
+      # @return [Thread] the detached pre-warm thread
+      def self.prewarm_async!(languages)
+        Thread.new do
+          Thread.current.name = "kotoshu-server-prewarm"
+          prewarm!(languages)
         end
       end
 
@@ -29,9 +62,6 @@ module Kotoshu
         app_logger = Logger.new($stderr)
         app_logger.level = ENV.fetch("KOTOSHU_SERVER_LOG_LEVEL", Logger::INFO)
         set :app_logger, app_logger
-
-        languages = ENV.fetch("KOTOSHU_SERVER_LANGUAGES", "en").split
-        Kotoshu::Server::App.prewarm!(languages) unless ENV.fetch("KOTOSHU_SERVER_LAZY", "0") == "1"
       end
 
       # ---- Endpoints ----
@@ -48,8 +78,7 @@ module Kotoshu
 
       get "/v1/health" do
         content_type :json
-        configured = ENV.fetch("KOTOSHU_SERVER_LANGUAGES", "en").split
-        ready = configured.map { |l| [l, Kotoshu.setup?(l.to_sym, :spelling)] }.to_h
+        ready = self.class.configured_languages.map { |l| [l, Kotoshu.setup?(l.to_sym, :spelling)] }.to_h
         { status: "ok", ready: ready, timestamp: Time.now.utc.iso8601 }.to_json
       end
 
