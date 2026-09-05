@@ -20,12 +20,10 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = "https://github.com/kotoshu/kotoshu-server/tree/main"
   spec.metadata["rubygems_mfa_required"] = "true"
 
-  gemspec = File.basename(__FILE__)
-  spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
-    ls.readlines("\x0", chomp: true).reject do |f|
-      (f == gemspec) || f.start_with?(*%w[bin/ spec/ .git .github])
-    end
-  end
+  spec.files = Dir.glob(
+    %w[exe/**/* lib/**/* openapi.yaml README.md LICENSE],
+    base: __dir__
+  ).select { |f| File.file?(File.expand_path(f, __dir__)) }
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
