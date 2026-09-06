@@ -44,7 +44,7 @@ paths:
                 $ref: "#/components/schemas/Version"
   /v1/languages:
     get:
-      summary: Languages with cached dictionaries
+      summary: Languages with cached dictionaries and model availability
       responses:
         "200":
           description: OK
@@ -55,6 +55,11 @@ paths:
   /v1/check:
     post:
       summary: Check text for spelling errors
+      description: |
+        Optional `"model": true` reranks each error's suggestions with
+        the semantic model set up server-side for the language
+        (requires KOTOSHU_SERVER_MODEL_LANGS at boot, kotoshu >= 0.7).
+        The default is whether a model is set up for the language.
       requestBody:
         required: true
         content:
@@ -72,6 +77,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "422":
           $ref: "#/components/responses/ResourceNotSetup"
+        "503":
+          $ref: "#/components/responses/ModelUnsupported"
   /v1/suggest:
     post:
       summary: Get suggestions for a single word
@@ -122,6 +129,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Error"
+    ModelUnsupported:
+      description: Model requested but the installed kotoshu gem is older than 0.7.0
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
   schemas:
     Metadata:
       type: object
@@ -150,11 +163,19 @@ components:
         ruby: { type: string }
     Languages:
       type: object
-      required: [cached]
+      required: [cached, model]
       properties:
         cached:
           type: array
           items: { type: string }
+        supported:
+          type: array
+          items: { type: string }
+        model:
+          type: object
+          description: Whether a semantic model is set up per cached language
+          additionalProperties: { type: boolean }
+          example: { en: true, de: false }
     CheckRequest:
       type: object
       required: [text]
@@ -162,6 +183,12 @@ components:
         text: { type: string }
         language: { type: string, default: en }
         format: { type: string, enum: [full, errors], default: full }
+        model:
+          type: boolean
+          description: |
+            Rerank suggestions with the language's semantic model.
+            Default is whether a model is set up server-side. true on a
+            language without a cached model returns 422.
     SuggestRequest:
       type: object
       required: [word]
