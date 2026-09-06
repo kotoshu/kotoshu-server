@@ -40,7 +40,10 @@ RSpec.describe "kotoshu-server HTTP API" do
   end
 
   it "POST /v1/check returns errors for misspelled text" do
-    res, body = post_json("/v1/check", { text: "helo wrold", language: "en" })
+    # model: false pins the dictionary-only order; the default flag is
+    # true on installs with a model set up, where reranking may
+    # legitimately reorder the suggestion list (covered in model_spec).
+    res, body = post_json("/v1/check", { text: "helo wrold", language: "en", model: false })
     expect(res.status).to eq(200)
     expect(body["errors"].map { |e| e["word"] }).to contain_exactly("helo", "wrold")
     expect(body["errors"].first["suggestions"].first["word"]).to eq("hello")

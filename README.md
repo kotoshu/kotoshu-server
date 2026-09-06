@@ -12,14 +12,12 @@ See `TODO.impl/64-http-api-and-sdks.md` for the full plan.
 
 ## Install
 
-```bash
-gem install kotoshu-server
-```
-
-Or from source:
+**Run from source.** The published `kotoshu-server 0.1.0` gem is
+empty (a gemspec file-list bug, fixed on main). Use source until the
+owner republishes 0.1.1:
 
 ```bash
-cd kotoshu-server && bundle install && bundle exec rake install
+cd kotoshu-server && bundle install && bundle exec exe/kotoshu-server
 ```
 
 ## Run
@@ -34,6 +32,45 @@ KOTOSHU_SERVER_LANGUAGES="en de fr" \
   kotoshu-server
 ```
 
+## Semantic models (opt-in)
+
+By default the server is dictionary-only — exactly the 0.1.0
+behavior. Semantic reranking is a boot-time opt-in; the server never
+downloads a model implicitly:
+
+```bash
+KOTOSHU_SERVER_LANGUAGES="en de" \
+KOTOSHU_SERVER_MODEL_LANGS="en" \
+  kotoshu-server
+```
+
+- `KOTOSHU_SERVER_MODEL_LANGS` — languages the pre-warm thread sets
+  up with spelling + semantic model (space separated). Unset means no
+  models, no downloads, no behavior change.
+- `KOTOSHU_SERVER_MODEL_TIER` — model tier to set up and resolve:
+  `fluency` (default), `full`, or `mini`.
+
+**Requires kotoshu >= 0.7.0.** Model tiers, the resource registry,
+and the confidence cascade ship in the 0.7.0 cut. The gemspec keeps
+its `kotoshu ~> 0.6` constraint (dependency floors are the owner's
+decision), so the server checks the *installed* gem instead: setting
+`KOTOSHU_SERVER_MODEL_LANGS` with an older kotoshu fails fast at
+boot with a clear error, and explicit `"model": true` requests
+return 503.
+
+Once a language has a model set up, `POST /v1/check` accepts an
+optional `"model": true|false` flag (default: whether the language
+has a model set up server-side). With it on, each error's
+suggestions are reranked by the semantic analyzer; the gem's
+confidence cascade (`KOTOSHU_SEMANTIC_CASCADE_THRESHOLD`) decides per
+word whether the ONNX rerank actually runs. `GET /v1/languages`
+reports `"model": {"en": true}` per cached language.
+
+Memory and latency: budget roughly 15 MB resident per language at
+the default fluency tier (the full tier is far larger), plus
+one-time model load on the first model-enabled request. Listing the
+language in `KOTOSHU_SERVER_MODEL_LANGS` warms it at boot instead.
+
 ## Endpoints
 
 | Method | Path | Body | Returns |
@@ -41,8 +78,8 @@ KOTOSHU_SERVER_LANGUAGES="en de fr" \
 | `GET` | `/` | — | service metadata |
 | `GET` | `/v1/health` | — | `{ status, ready, timestamp }` |
 | `GET` | `/v1/version` | — | `{ server, kotoshu, ruby }` |
-| `GET` | `/v1/languages` | — | `{ cached: [...] }` |
-| `POST` | `/v1/check` | `{ text, language?, format? }` | `{ file, word_count, errors: [...] }` |
+| `GET` | `/v1/languages` | — | `{ cached, supported, model }` |
+| `POST` | `/v1/check` | `{ text, language?, format?, model? }` | `{ file, word_count, errors: [...] }` |
 | `POST` | `/v1/suggest` | `{ word, language?, max? }` | `{ word, suggestions: [...] }` |
 | `POST` | `/v1/detect` | `{ text }` | `{ language, confidence }` |
 
@@ -87,6 +124,8 @@ Healthcheck probes `/v1/health` every 30s.
 | `KOTOSHU_SERVER_PORT` | `9292` | Listen port |
 | `KOTOSHU_SERVER_BIND` | `0.0.0.0` | Bind address |
 | `KOTOSHU_SERVER_LANGUAGES` | `en` | Languages to pre-warm on boot |
+| `KOTOSHU_SERVER_MODEL_LANGS` | unset | Languages to set up with a semantic model (requires kotoshu >= 0.7) |
+| `KOTOSHU_SERVER_MODEL_TIER` | `fluency` | Model tier for `KOTOSHU_SERVER_MODEL_LANGS` |
 | `KOTOSHU_SERVER_LAZY` | `0` | Skip pre-warm; load on first request |
 | `KOTOSHU_SERVER_DEFAULT_LANG` | `en` | When client omits `language` |
 | `KOTOSHU_SERVER_LOG_LEVEL` | `info` | `debug`/`info`/`warn`/`error` |
