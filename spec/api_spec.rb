@@ -62,6 +62,7 @@ RSpec.describe "kotoshu-server HTTP API" do
     expect(res.status).to eq(200)
     expect(body["language"]).to be_a(String)
     expect(body["confidence"]).to be_a(Float)
+    expect(body["engine"]).to match(/\A(lid-176|heuristic)\z/)
   end
 
   it "returns 400 on missing 'text'" do

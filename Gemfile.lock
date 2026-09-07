@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kotoshu-server (0.1.0)
+    kotoshu-server (0.1.2)
       kotoshu (~> 0.6)
       logger (~> 1.0)
       puma (~> 6.4)
@@ -180,7 +180,7 @@ CHECKSUMS
   ffi (1.17.4-x86_64-linux-musl) sha256=3fdf9888483de005f8ef8d1cf2d3b20d86626af206cbf780f6a6a12439a9c49e
   json (2.21.2) sha256=1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
   kotoshu (0.6.0) sha256=927029b98890aa43c517e43ee39dfed3286241b0a526570061d2bef2bda13925
-  kotoshu-server (0.1.0)
+  kotoshu-server (0.1.2)
   language_server-protocol (3.17.0.6) sha256=5ef2c0c138f8267e1bc631d3328347d354f96724b0af22f2c79516120443b7f0
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   liquid (5.13.0) sha256=09d594fd96b98e19a8fd5c32aadcc6950df429b69f48c2f774c0db0ce272bf19

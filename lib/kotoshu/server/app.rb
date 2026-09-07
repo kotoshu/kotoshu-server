@@ -12,13 +12,23 @@ module Kotoshu
     class ModelConfigError < StandardError; end
 
     class App < Sinatra::Base
-      VERSION = "0.1.0".freeze
+      # The release version, from lib/kotoshu/server/version.rb —
+      # the only source of truth (the release workflow bumps it).
+      VERSION = Kotoshu::Server::VERSION
 
       # Semantic models (tiers, registry, confidence cascade) ship in
       # kotoshu 0.7.0. The gemspec keeps its `kotoshu ~> 0.6`
       # constraint (dependency floors are the owner's call), so the
       # server validates the *installed* gem at boot instead.
       MODEL_MIN_KOTOSHU = Gem::Version.new("0.7.0")
+
+      # Native language identification (plan 106) ships in kotoshu
+      # 0.10.0: Kotoshu.detect_language returning a
+      # Language::Detection backed by the lid-176 model through the
+      # native extension. Same policy as MODEL_MIN_KOTOSHU — the
+      # gemspec floor stays `kotoshu ~> 0.6` (older gems keep the
+      # heuristic), so the installed gem is checked per request.
+      DETECT_MIN_KOTOSHU = Gem::Version.new("0.10.0")
 
       # Languages to set up at boot, from KOTOSHU_SERVER_LANGUAGES
       # (space separated). Single source of truth for the env var: the
@@ -148,6 +158,99 @@ module Kotoshu
         end
       end
 
+      # ---- Language detection (/v1/detect) ----
+
+      @lid_setup_mutex = Mutex.new
+      @lid_setup_attempted = false
+
+      # Whether the installed kotoshu gem carries the lid-176
+      # detection surface (0.10.0+): Kotoshu.detect_language returning
+      # a Language::Detection, plus setup_lid / LidDetector.available?.
+      #
+      # @return [Boolean]
+      def self.lid_supported?
+        Gem::Version.new(Kotoshu::VERSION) >= DETECT_MIN_KOTOSHU
+      end
+
+      # Whether KOTOSHU_DETECT=heuristic pins /v1/detect to the
+      # 7-language heuristic, bypassing the gem engine selection (the
+      # 0.1.1 behavior, e.g. to reproduce earlier results).
+      #
+      # @return [Boolean]
+      def self.heuristic_detect?
+        ENV.fetch("KOTOSHU_DETECT", nil) == "heuristic"
+      end
+
+      # Detect for /v1/detect: the language code, its score, and the
+      # engine that served — "lid-176" or "heuristic".
+      #
+      # Engine selection, in order:
+      # 1. KOTOSHU_DETECT=heuristic — the heuristic, pinned.
+      # 2. kotoshu < 0.10.0 — the heuristic, as in 0.1.1; the server
+      #    keeps working on old gems.
+      # 3. Otherwise the gem's own selection: lid-176 through the
+      #    native extension when it is built, the backend is not
+      #    explicitly ruby, and the artifact pair is cached; the
+      #    heuristic otherwise (KOTOSHU_BACKEND=ruby, pure-Ruby
+      #    install, missing model).
+      #
+      # The lid model is set up lazily on the first detect reaching
+      # case 3 — one download, off the boot path, honoring
+      # KOTOSHU_OFFLINE through the gem; a failed setup (offline with
+      # no cache, no registry entry, checksum mismatch) logs once and
+      # detection answers from whatever the gem can serve.
+      #
+      # @param text [String] the text to analyze
+      # @return [Array(String, Float, String)] code (nil when the
+      #   heuristic is uncertain), score in [0, 1], engine name
+      def self.detect_language_with_engine(text)
+        return heuristic_detection(text) if heuristic_detect? || !lid_supported?
+
+        ensure_lid_setup!
+        detection = Kotoshu.detect_language(text)
+        [detection.code, detection.score, lid_engine]
+      end
+
+      # The heuristic detection (Language::Detector, the same engine
+      # /v1/detect served in 0.1.1, unchanged across gem versions).
+      #
+      # @param text [String]
+      # @return [Array(String, Float, String)]
+      def self.heuristic_detection(text)
+        code, confidence = Kotoshu::Language::Detector.detect_with_confidence(text)
+        [code, confidence, "heuristic"]
+      end
+
+      # Which engine the gem serves detect from: lid-176 when the
+      # native model is loadable, the heuristic otherwise. Asked
+      # after a detect, so it always names the engine behind the
+      # returned code.
+      #
+      # @return [String]
+      def self.lid_engine
+        Kotoshu::Language::LidDetector.available? ? "lid-176" : "heuristic"
+      end
+
+      # Run Kotoshu.setup_lid once per process, on the first detect.
+      # Idempotent in the gem; the once-guard keeps concurrent
+      # requests from racing the download. Any failure is logged and
+      # swallowed — detect then falls back inside the gem to whatever
+      # is cached (typically the heuristic).
+      #
+      # @return [void]
+      def self.ensure_lid_setup!
+        @lid_setup_mutex.synchronize do
+          return if @lid_setup_attempted
+
+          @lid_setup_attempted = true
+          Kotoshu.setup_lid
+        end
+      rescue StandardError => e
+        Logger.new($stderr).warn(
+          "lid model setup failed, falling back to the heuristic: #{e.class}: #{e.message}"
+        )
+      end
+
       # ---- Semantic analyzers (memoized per language + model file) ----
 
       @semantic_analyzers = {}
@@ -265,9 +368,9 @@ module Kotoshu
         text = body["text"]
         halt_with_error(400, "missing 'text'") unless text.is_a?(String)
 
-        lang, confidence = Kotoshu.detect_language_with_confidence(text)
+        language, confidence, engine = self.class.detect_language_with_engine(text)
         content_type :json
-        { language: lang, confidence: confidence }.to_json
+        { language: language, confidence: confidence, engine: engine }.to_json
       end
 
       # ---- Error handling ----
