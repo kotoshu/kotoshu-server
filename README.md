@@ -12,9 +12,12 @@ See `TODO.impl/64-http-api-and-sdks.md` for the full plan.
 
 ## Install
 
-**Run from source.** The published `kotoshu-server 0.1.0` gem is
-empty (a gemspec file-list bug, fixed on main). Use source until the
-owner republishes 0.1.1:
+```bash
+gem install kotoshu-server   # >= 0.1.1 (the 0.1.0 gem was empty — a gemspec file-list bug)
+kotoshu-server
+```
+
+Or run from source:
 
 ```bash
 cd kotoshu-server && bundle install && bundle exec exe/kotoshu-server
@@ -71,6 +74,24 @@ the default fluency tier (the full tier is far larger), plus
 one-time model load on the first model-enabled request. Listing the
 language in `KOTOSHU_SERVER_MODEL_LANGS` warms it at boot instead.
 
+## Language detection
+
+`POST /v1/detect` reports which engine answered in the `engine`
+field:
+
+- `"lid-176"` — the 176-language lid.176 model served through the
+  kotoshu native extension (kotoshu >= 0.10.0). The model is set up
+  lazily on the first detect — one download, never at boot, and
+  never at all under `KOTOSHU_OFFLINE=1` without a cache (Docker
+  defaults to offline).
+- `"heuristic"` — the 7-language character-set heuristic (en, de,
+  es, fr, pt, ru, ja), the fallback whenever lid-176 cannot serve:
+  kotoshu < 0.10.0, a pure-Ruby install or `KOTOSHU_BACKEND=ruby`,
+  or the model missing after a failed setup.
+
+Set `KOTOSHU_DETECT=heuristic` to pin the heuristic regardless of
+the installed gem — the 0.1.1 behavior, byte for byte.
+
 ## Endpoints
 
 | Method | Path | Body | Returns |
@@ -81,7 +102,7 @@ language in `KOTOSHU_SERVER_MODEL_LANGS` warms it at boot instead.
 | `GET` | `/v1/languages` | — | `{ cached, supported, model }` |
 | `POST` | `/v1/check` | `{ text, language?, format?, model? }` | `{ file, word_count, errors: [...] }` |
 | `POST` | `/v1/suggest` | `{ word, language?, max? }` | `{ word, suggestions: [...] }` |
-| `POST` | `/v1/detect` | `{ text }` | `{ language, confidence }` |
+| `POST` | `/v1/detect` | `{ text }` | `{ language, confidence, engine }` |
 
 Each `error` and `suggestion` mirrors the lutaml-model serialization
 (`word`, `distance`, `confidence`, `source`).
@@ -129,6 +150,7 @@ Healthcheck probes `/v1/health` every 30s.
 | `KOTOSHU_SERVER_LAZY` | `0` | Skip pre-warm; load on first request |
 | `KOTOSHU_SERVER_DEFAULT_LANG` | `en` | When client omits `language` |
 | `KOTOSHU_SERVER_LOG_LEVEL` | `info` | `debug`/`info`/`warn`/`error` |
+| `KOTOSHU_DETECT` | `auto` | `heuristic` pins /v1/detect to the heuristic engine |
 | `KOTOSHU_OFFLINE` | `1` (in Docker) | Never trigger downloads |
 
 ## OpenAPI

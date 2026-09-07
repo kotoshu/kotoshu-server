@@ -236,6 +236,13 @@ components:
       properties:
         language: { type: string, nullable: true }
         confidence: { type: number, format: float }
+        engine:
+          type: string
+          enum: [lid-176, heuristic]
+          description: >
+            Which engine served the detection: the 176-language lid-176
+            model (kotoshu >= 0.10.0 with the native extension and the
+            model set up) or the 7-language heuristic.
     Error:
       type: object
       properties:
