@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency "kotoshu", "~> 0.6"
+  spec.add_runtime_dependency "kotoshu", "~> 1.0"
   spec.add_runtime_dependency "sinatra", "~> 3.2"
   spec.add_runtime_dependency "puma", "~> 6.4"
   spec.add_runtime_dependency "logger", "~> 1.0"
