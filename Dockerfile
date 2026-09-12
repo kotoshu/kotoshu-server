@@ -19,6 +19,12 @@ RUN if [ -n "$KOTOSHU_SERVER_VERSION" ]; then \
       gem install kotoshu-server --no-document; \
     fi
 
+# kotoshu 1.0.2+ resolves the precompiled x86_64-linux platform gem,
+# so this slim builder carries the Rust engine with no toolchain.
+# Assert it: a silent fallback to a source install would mean the
+# platform gem stopped resolving (plan 133's docker gate).
+RUN ruby -e 'require "kotoshu"; abort "native engine missing - platform gem not resolved" unless Kotoshu::Native.available?'
+
 RUN mkdir -p /root/.cache/kotoshu \
     && for lang in $KOTOSHU_PREWARM_LANGS; do \
          ruby -e "require 'kotoshu'; Kotoshu.setup(:$lang)" || echo "pre-warm $lang failed"; \
