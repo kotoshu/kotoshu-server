@@ -6,7 +6,7 @@ Self-hostable HTTP API wrapping the [Kotoshu](https://github.com/kotoshu/kotoshu
 
 MVP. Six endpoints over JSON. Rack/Sinatra + Puma. Pre-warms
 languages on boot. Designed as the deployment surface for non-Ruby
-SDKs (`kotoshu-python`, `kotoshu-js`, `kotoshu-go`).
+SDKs (`kotoshu-py`, `kotoshu-js`, `kotoshu-go`).
 
 See `TODO.impl/64-http-api-and-sdks.md` for the full plan.
 
