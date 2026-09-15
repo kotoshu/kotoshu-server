@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kotoshu-server (1.0.0)
+    kotoshu-server (1.0.1)
       kotoshu (~> 1.0)
       logger (~> 1.0)
       puma (~> 6.4)
@@ -12,11 +12,11 @@ GEM
   specs:
     ast (2.4.3)
     base64 (0.3.0)
-    bigdecimal (4.1.2)
-    canon (0.3.29)
+    bigdecimal (4.1.3)
+    canon (0.3.44)
       diff-lcs
       json
-      moxml (~> 0.5.0)
+      moxml (~> 0.5.41)
       nokogiri
       paint
       rainbow
@@ -35,9 +35,25 @@ GEM
     ffi (1.17.4-x86_64-linux-gnu)
     ffi (1.17.4-x86_64-linux-musl)
     json (2.21.2)
-    kotoshu (1.0.0)
+    kotoshu (1.0.6)
       lutaml-model (~> 0.8)
       rb_sys (~> 0.9)
+      rubyzip (~> 2.3)
+      thor (~> 1.0)
+    kotoshu (1.0.6-aarch64-linux)
+      lutaml-model (~> 0.8)
+      rubyzip (~> 2.3)
+      thor (~> 1.0)
+    kotoshu (1.0.6-arm64-darwin)
+      lutaml-model (~> 0.8)
+      rubyzip (~> 2.3)
+      thor (~> 1.0)
+    kotoshu (1.0.6-x86_64-darwin)
+      lutaml-model (~> 0.8)
+      rubyzip (~> 2.3)
+      thor (~> 1.0)
+    kotoshu (1.0.6-x86_64-linux)
+      lutaml-model (~> 0.8)
       rubyzip (~> 2.3)
       thor (~> 1.0)
     language_server-protocol (3.17.0.6)
@@ -57,7 +73,7 @@ GEM
       rubyzip (~> 2.3)
       thor
     memo_wise (1.13.0)
-    moxml (0.5.30)
+    moxml (0.5.45)
     mustermann (3.1.1)
     nio4r (2.7.5)
     nokogiri (1.19.4-aarch64-linux-gnu)
@@ -155,6 +171,7 @@ PLATFORMS
   arm-linux-musl
   arm64-darwin
   x86_64-darwin
+  x86_64-linux
   x86_64-linux-gnu
   x86_64-linux-musl
 
@@ -169,8 +186,8 @@ DEPENDENCIES
 CHECKSUMS
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
-  bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
-  canon (0.3.29) sha256=4ef7704f710cdc2aa505a9e3bc35bbda1b998f248287b77fbebf19c72a8f7987
+  bigdecimal (4.1.3) sha256=61ebe1e5e559bdc3cc6f2c0ee7f427321fc838f59611c294356eb04d6e21cf66
+  canon (0.3.44) sha256=545bb699f7915a85206144daebcbe839657f04ec0a24c046bccd33d47f84037e
   concurrent-ruby (1.3.8) sha256=b2f1be836e968ccc78ccfce277ea79c72a88633f22306782c16ff23fb415d1e1
   csv (3.3.6) sha256=aba61e7e507a66f03d45cb1f3c4b6359861c3504038b422962875dce099e4456
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
@@ -183,15 +200,19 @@ CHECKSUMS
   ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
   ffi (1.17.4-x86_64-linux-musl) sha256=3fdf9888483de005f8ef8d1cf2d3b20d86626af206cbf780f6a6a12439a9c49e
   json (2.21.2) sha256=1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
-  kotoshu (1.0.0) sha256=ba13417615044702f2a7201e5e8af7510de93b8d1af65233c3c18ae3a5ae7606
-  kotoshu-server (1.0.0)
+  kotoshu (1.0.6) sha256=cd853bde0c41759de426e879a79157bb81b4466a21d8e528d5485685bfd19f7e
+  kotoshu (1.0.6-aarch64-linux) sha256=4989100d730bb8bdcdb77cf9b7daee259a5d4edb1caa7907626e51b339e0b662
+  kotoshu (1.0.6-arm64-darwin) sha256=3a835f17f1597ebbd0cb469c3ee606e5be2fd3340773f9242a531b9b505596c6
+  kotoshu (1.0.6-x86_64-darwin) sha256=00f390e46b8ed5411ecf000fba6454e175fa6161cb79bfb9a082b7c77454ef60
+  kotoshu (1.0.6-x86_64-linux) sha256=01ff248238478e78c817c98f961c149c217b023f510352aee5c7a22a0f647ba3
+  kotoshu-server (1.0.1)
   language_server-protocol (3.17.0.6) sha256=5ef2c0c138f8267e1bc631d3328347d354f96724b0af22f2c79516120443b7f0
   lint_roller (1.1.0) sha256=2c0c845b632a7d172cb849cc90c1bce937a28c5c8ccccb50dfd46a485003cc87
   liquid (5.13.0) sha256=09d594fd96b98e19a8fd5c32aadcc6950df429b69f48c2f774c0db0ce272bf19
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   lutaml-model (0.8.23) sha256=66af256a1aeae6853edc2eb2a3b2f1a98d41829603f733ca4aa51a2c68384bfe
   memo_wise (1.13.0) sha256=30220c38c4cef410849bc73553c58664dc2c91c6379e4a1df22aea02358b716b
-  moxml (0.5.30) sha256=ae18c2f3e0e2b68c6ba94b9abde316e55af4296bec8153ca4a38f34f71541ea9
+  moxml (0.5.45) sha256=5ffece202a6d93cac2e1bc00d8a99913ec1ab9b4831a964ee79f4a2903226411
   mustermann (3.1.1) sha256=4c6170c7234d5499c345562ba7c7dfe73e1754286dcc1abb053064d66a127198
   nio4r (2.7.5) sha256=6c90168e48fb5f8e768419c93abb94ba2b892a1d0602cb06eef16d8b7df1dca1
   nokogiri (1.19.4-aarch64-linux-gnu) sha256=1269fb644a6de405057a53dd5c762b1209b43ca7424f839454d3dbc677c31a8f
