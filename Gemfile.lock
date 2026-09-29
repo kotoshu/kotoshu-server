@@ -36,24 +36,24 @@ GEM
     ffi (1.17.4-x86_64-linux-gnu)
     ffi (1.17.4-x86_64-linux-musl)
     json (2.21.2)
-    kotoshu (1.0.7)
+    kotoshu (1.0.8)
       lutaml-model (~> 0.8)
       rb_sys (~> 0.9)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-    kotoshu (1.0.7-aarch64-linux)
+    kotoshu (1.0.8-aarch64-linux)
       lutaml-model (~> 0.8)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-    kotoshu (1.0.7-arm64-darwin)
+    kotoshu (1.0.8-arm64-darwin)
       lutaml-model (~> 0.8)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-    kotoshu (1.0.7-x86_64-darwin)
+    kotoshu (1.0.8-x86_64-darwin)
       lutaml-model (~> 0.8)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-    kotoshu (1.0.7-x86_64-linux)
+    kotoshu (1.0.8-x86_64-linux)
       lutaml-model (~> 0.8)
       rubyzip (~> 2.3)
       thor (~> 1.0)
@@ -218,11 +218,11 @@ CHECKSUMS
   ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
   ffi (1.17.4-x86_64-linux-musl) sha256=3fdf9888483de005f8ef8d1cf2d3b20d86626af206cbf780f6a6a12439a9c49e
   json (2.21.2) sha256=1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
-  kotoshu (1.0.7) sha256=a489b4a807c7b0d4902de3eeb7963b99d44b065e4ff1aede8c7cd6e0850be4d5
-  kotoshu (1.0.7-aarch64-linux) sha256=9189433ce5ea23fad61d16a0de3267829425324b138bcd184913238b5dac9976
-  kotoshu (1.0.7-arm64-darwin) sha256=5b86733bba6e18c08c16006b2eaf054b5d171451628fed2492397ef7e97526f8
-  kotoshu (1.0.7-x86_64-darwin) sha256=e00b703f4a077ccc23cb2adb7f982fe811bb1f8e7eafc036c93fdb359e31c5f9
-  kotoshu (1.0.7-x86_64-linux) sha256=2f995a425d5ced38ba64290bca4b567df12888ca3e15eb4130c6beaba299e880
+  kotoshu (1.0.8) sha256=c9f121b3eedb165739bf92a68f0c44683db3905afdacb6606bf30f9d968ee719
+  kotoshu (1.0.8-aarch64-linux) sha256=0d8d542edec8e9fc5fa0e7089d82bac5c144a6235477e6d64b4858b366e73744
+  kotoshu (1.0.8-arm64-darwin) sha256=4373d75d5ff62f95290dedd6d71cb222d2010a04ab7a061d085ed915442f9928
+  kotoshu (1.0.8-x86_64-darwin) sha256=907a829efe5bd98a80ee3730731c67c667d751b761cd75828b4b299998e83246
+  kotoshu (1.0.8-x86_64-linux) sha256=6ccc1850a98a53bb74a763630e4603546cabf183ad76d1a8bc0692ada1f7465a
   kotoshu-server (1.1.0)
   language_server-protocol (3.17.0.6) sha256=5ef2c0c138f8267e1bc631d3328347d354f96724b0af22f2c79516120443b7f0
   leptris (1.9.268.0-aarch64-linux) sha256=e2e571787ccfb1b87c5de761089bef6088b9cc9b6b945c61948b2c9b00ce75e2
