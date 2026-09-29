@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    kotoshu-server (1.1.0)
+    kotoshu-server (1.1.1)
       kotoshu (~> 1.0)
       logger (~> 1.0)
       puma (~> 6.4)
@@ -223,7 +223,7 @@ CHECKSUMS
   kotoshu (1.0.8-arm64-darwin) sha256=4373d75d5ff62f95290dedd6d71cb222d2010a04ab7a061d085ed915442f9928
   kotoshu (1.0.8-x86_64-darwin) sha256=907a829efe5bd98a80ee3730731c67c667d751b761cd75828b4b299998e83246
   kotoshu (1.0.8-x86_64-linux) sha256=6ccc1850a98a53bb74a763630e4603546cabf183ad76d1a8bc0692ada1f7465a
-  kotoshu-server (1.1.0)
+  kotoshu-server (1.1.1)
   language_server-protocol (3.17.0.6) sha256=5ef2c0c138f8267e1bc631d3328347d354f96724b0af22f2c79516120443b7f0
   leptris (1.9.268.0-aarch64-linux) sha256=e2e571787ccfb1b87c5de761089bef6088b9cc9b6b945c61948b2c9b00ce75e2
   leptris (1.9.268.0-aarch64-linux-musl) sha256=47a6882793e6c15e3d805a2447f9cae6c2ec87d4a1e59769882f5ef5ba4cf8d6
