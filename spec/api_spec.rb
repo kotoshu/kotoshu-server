@@ -49,6 +49,21 @@ RSpec.describe "kotoshu-server HTTP API" do
     expect(body["errors"].first["suggestions"].first["word"]).to eq("hello")
   end
 
+  it "POST /v1/check returns grammar_errors when grammar: true", if: Kotoshu.respond_to?(:grammar_check) do
+    res, body = post_json("/v1/check", { text: "He go to school.", language: "en", model: false, grammar: true })
+    expect(res.status).to eq(200)
+    grammar = body["grammar_errors"]
+    expect(grammar).to be_an(Array)
+    expect(grammar.map { |e| e["rule_id"] }).to include("EN_SV_AGREEMENT_3SG")
+    expect(grammar.first).to include("start_offset", "end_offset", "message", "suggestions")
+  end
+
+  it "POST /v1/check omits grammar_errors without the flag" do
+    res, body = post_json("/v1/check", { text: "He go to school.", language: "en", model: false })
+    expect(res.status).to eq(200)
+    expect(body).not_to have_key("grammar_errors")
+  end
+
   it "POST /v1/suggest returns suggestions" do
     res, body = post_json("/v1/suggest", { word: "helo", language: "en", max: 3 })
     expect(res.status).to eq(200)
