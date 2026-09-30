@@ -325,6 +325,13 @@ module Kotoshu
         halt_with_error(400, "missing 'text'") unless text.is_a?(String)
 
         want = want_model ? %i[spelling model] : %i[spelling]
+        # Grammar checks are rule-only and bundled with the gem — no
+        # setup step. Soft-gated: kotoshu >= the grammar release; on
+        # older gems the flag is simply ignored.
+        grammar_errors =
+          if body["grammar"] && Kotoshu.respond_to?(:grammar_check)
+            Kotoshu.grammar_check(text, language: language)
+          end
         result = with_resource(language, want: want) do |checker, bundle|
           if want_model && bundle.model.nil?
             # The gem resolves a nil model for languages that cannot
@@ -341,10 +348,23 @@ module Kotoshu
         end
 
         content_type :json
-        case format_hint
-        when "errors" then serialize_errors(result).to_json
-        else serialize_full(result).to_json
+        payload =
+          case format_hint
+          when "errors" then serialize_errors(result)
+          else serialize_full(result)
+          end
+        if grammar_errors
+          payload = payload.merge("grammar_errors" => grammar_errors.map do |e|
+            {
+              "rule_id" => e[:rule_id],
+              "start_offset" => e[:start_offset],
+              "end_offset" => e[:end_offset],
+              "message" => e[:message],
+              "suggestions" => e[:suggestions]
+            }
+          end)
         end
+        payload.to_json
       end
 
       post "/v1/suggest" do
